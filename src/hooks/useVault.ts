@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { deriveKey, generateSalt, saltToBase64, saltFromBase64 } from '../crypto.ts'
 import { saveRoster, loadRoster, hasSavedVault, getSavedSalt, saveSalt } from '../storage.ts'
 import type { Employee, Roster, PaySchedule } from '../types.ts'
@@ -20,6 +20,15 @@ export function useVault() {
     loading: false,
   })
   const [cryptoKey, setCryptoKey] = useState<CryptoKey | null>(null)
+  // Keep a ref to the latest roster so async saves always use current data
+  const rosterRef = useRef(state.roster)
+
+  const persistAndUpdate = useCallback((newRoster: Roster, key: CryptoKey) => {
+    rosterRef.current = newRoster
+    setState(s => ({ ...s, roster: newRoster }))
+    // Fire-and-forget save, but outside setState
+    saveRoster(key, newRoster)
+  }, [])
 
   const createVault = useCallback(async (passphrase: string) => {
     setState(s => ({ ...s, loading: true, error: null }))
@@ -30,6 +39,7 @@ export function useVault() {
       const roster: Roster = { employees: [], schedule: null, updatedAt: Date.now() }
       await saveRoster(key, roster)
       setCryptoKey(key)
+      rosterRef.current = roster
       setState(s => ({
         ...s,
         locked: false,
@@ -53,9 +63,9 @@ export function useVault() {
       const salt = saltFromBase64(saltB64)
       const key = await deriveKey(passphrase, salt)
       const roster = await loadRoster(key)
-      // Backfill schedule field for vaults created before this feature
       if (!roster.schedule) roster.schedule = null
       setCryptoKey(key)
+      rosterRef.current = roster
       setState(s => ({
         ...s,
         locked: false,
@@ -67,38 +77,27 @@ export function useVault() {
     }
   }, [])
 
-  const updateRoster = useCallback(async (updater: (employees: Employee[]) => Employee[]) => {
+  const updateRoster = useCallback((updater: (employees: Employee[]) => Employee[]) => {
     if (!cryptoKey) return
+    const newEmployees = updater(rosterRef.current.employees)
+    const newRoster: Roster = { ...rosterRef.current, employees: newEmployees, updatedAt: Date.now() }
+    persistAndUpdate(newRoster, cryptoKey)
+  }, [cryptoKey, persistAndUpdate])
 
-    setState(s => {
-      const newEmployees = updater(s.roster.employees)
-      const newRoster: Roster = { ...s.roster, employees: newEmployees, updatedAt: Date.now() }
-      saveRoster(cryptoKey, newRoster)
-      return { ...s, roster: newRoster }
-    })
-  }, [cryptoKey])
-
-  const updateSchedule = useCallback(async (schedule: PaySchedule) => {
+  const updateSchedule = useCallback((schedule: PaySchedule) => {
     if (!cryptoKey) return
+    const newRoster: Roster = { ...rosterRef.current, schedule, updatedAt: Date.now() }
+    persistAndUpdate(newRoster, cryptoKey)
+  }, [cryptoKey, persistAndUpdate])
 
-    setState(s => {
-      const newRoster: Roster = { ...s.roster, schedule, updatedAt: Date.now() }
-      saveRoster(cryptoKey, newRoster)
-      return { ...s, roster: newRoster }
-    })
-  }, [cryptoKey])
-
-  const markNotified = useCallback(async (dateStr: string) => {
+  const markNotified = useCallback((dateStr: string) => {
     if (!cryptoKey) return
-
-    setState(s => {
-      if (!s.roster.schedule) return s
-      const newSchedule: PaySchedule = { ...s.roster.schedule, lastNotified: dateStr }
-      const newRoster: Roster = { ...s.roster, schedule: newSchedule, updatedAt: Date.now() }
-      saveRoster(cryptoKey, newRoster)
-      return { ...s, roster: newRoster }
-    })
-  }, [cryptoKey])
+    const currentSchedule = rosterRef.current.schedule
+    if (!currentSchedule) return
+    const newSchedule: PaySchedule = { ...currentSchedule, lastNotified: dateStr }
+    const newRoster: Roster = { ...rosterRef.current, schedule: newSchedule, updatedAt: Date.now() }
+    persistAndUpdate(newRoster, cryptoKey)
+  }, [cryptoKey, persistAndUpdate])
 
   return {
     ...state,

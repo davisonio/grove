@@ -49,6 +49,12 @@ export function RosterScreen({
     onUpdate(list => list.filter(emp => emp.id !== id))
   }
 
+  const handleStatusChange = (id: string, status: Employee['status']) => {
+    onUpdate(list => list.map(emp =>
+      emp.id === id ? { ...emp, status } : emp
+    ))
+  }
+
   const handleCsvImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -160,6 +166,7 @@ export function RosterScreen({
             employees={employees}
             onEdit={(id) => { setEditingId(id); setShowForm(false) }}
             onDelete={handleDelete}
+            onStatusChange={handleStatusChange}
           />
 
           <div className="mt-6 pt-4 border-t border-border flex items-center justify-between">

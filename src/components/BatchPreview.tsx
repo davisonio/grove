@@ -68,6 +68,14 @@ export function BatchPreview({ employees, onGenerate, onBack }: Props) {
         </button>
       </div>
 
+      {!testMode && employees.some(e => e.status === 'new') && (
+        <div className="bg-warn-bg border border-warn/20 p-3 rounded-sm mb-4">
+          <p className="text-sm text-warn">
+            {employees.filter(e => e.status === 'new').length} recipient{employees.filter(e => e.status === 'new').length !== 1 ? 's have' : ' has'} not been tested yet. Run a test batch first to verify addresses.
+          </p>
+        </div>
+      )}
+
       {hasUsd && (
         <div className="mb-4 text-sm">
           {loading && <span className="text-muted">Fetching ZEC price...</span>}

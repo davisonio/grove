@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { GroveLogo } from './GroveLogo.tsx'
 
 interface Props {
   hasExistingVault: boolean
@@ -52,9 +53,10 @@ export function UnlockScreen({ hasExistingVault, error, loading, onCreateVault, 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <form onSubmit={handleSubmit} className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold">Grove</h1>
-        <p className="text-sm text-muted mb-1">Shielded payroll for Zcash.</p>
-        <p className="text-xs text-muted mb-8">Everything encrypted in your browser with Web Crypto API. Nothing leaves this device.</p>
+        <GroveLogo size={64} className="mb-5" />
+        <h1 className="text-2xl font-bold mb-2">Grove</h1>
+        <p className="text-sm text-muted mb-2">Shielded payroll for Zcash.</p>
+        <p className="text-xs text-muted mb-10">Everything encrypted in your browser with Web Crypto API. Nothing leaves this device.</p>
 
         <label className="block text-sm text-muted mb-1" htmlFor="passphrase">
           Passphrase

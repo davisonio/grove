@@ -1,0 +1,22 @@
+interface Props {
+  size?: number
+  className?: string
+}
+
+export function GroveLogo({ size = 48, className = '' }: Props) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 32 32"
+      width={size}
+      height={size}
+      className={className}
+    >
+      <path
+        d="M16 2 C16 2 12 8 12 14 C12 17 13 19 14 20 C12 18 9 17 7 17 C7 17 10 22 14 24 C12 24 10 25 8 27 C8 27 12 27 16 25 C20 27 24 27 24 27 C22 25 20 24 18 24 C22 22 25 17 25 17 C23 17 20 18 18 20 C19 19 20 17 20 14 C20 8 16 2 16 2Z"
+        fill="#2A6F6F"
+      />
+      <line x1="16" y1="14" x2="16" y2="30" stroke="#2A6F6F" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}

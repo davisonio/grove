@@ -4,8 +4,7 @@ const BIWEEKLY_MS = 14 * 24 * 60 * 60 * 1000
 
 /**
  * Check if today falls on a biweekly pay cycle day.
- * Returns true if today is on or past the next pay date
- * and we haven't already notified for this cycle.
+ * Returns true if we're on or past a pay date and haven't notified yet.
  */
 export function isPayDay(schedule: PaySchedule): boolean {
   if (!schedule.enabled) return false
@@ -14,24 +13,21 @@ export function isPayDay(schedule: PaySchedule): boolean {
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
-  // Walk forward from start date in 14-day increments
-  // to find the current or most recent pay date
+  // Future start date: no pay day yet
+  if (start > today) return false
+
+  // Find the most recent pay date on or before today
   let payDate = new Date(start)
-  while (payDate < today) {
+  while (payDate.getTime() + BIWEEKLY_MS <= today.getTime()) {
     payDate = new Date(payDate.getTime() + BIWEEKLY_MS)
   }
 
-  // Check if today matches a pay date (or we're past one we missed)
-  const prevPayDate = new Date(payDate.getTime() - BIWEEKLY_MS)
-  const isOnOrPastPayDate = today >= prevPayDate && today < payDate
+  // payDate is now the most recent cycle date <= today
+  const relevantDate = payDate.toISOString().slice(0, 10)
 
-  // The relevant pay date for this cycle
-  const relevantDate = prevPayDate.toISOString().slice(0, 10)
-
-  // Already notified for this cycle?
   if (schedule.lastNotified === relevantDate) return false
 
-  return isOnOrPastPayDate
+  return payDate <= today
 }
 
 /**

@@ -6,6 +6,7 @@ interface Props {
   employees: Employee[]
   onEdit: (id: string) => void
   onDelete: (id: string) => void
+  onStatusChange: (id: string, status: Employee['status']) => void
 }
 
 function truncateAddress(addr: string): string {
@@ -13,22 +14,20 @@ function truncateAddress(addr: string): string {
   return addr.slice(0, 10) + '...' + addr.slice(-8)
 }
 
-const statusLabel: Record<Employee['status'], string> = {
-  'new': 'New',
-  'test-sent': 'Test sent',
-  'active': 'Active',
+const statusStyles: Record<Employee['status'], string> = {
+  'new': 'text-muted',
+  'test-sent': 'text-warn',
+  'active': 'text-teal',
 }
 
-export function EmployeeTable({ employees, onEdit, onDelete }: Props) {
-  const [expandedAddr, setExpandedAddr] = useState<string | null>(null)
+const nextStatus: Record<Employee['status'], { label: string; value: Employee['status'] }> = {
+  'new': { label: 'Mark tested', value: 'test-sent' },
+  'test-sent': { label: 'Mark active', value: 'active' },
+  'active': { label: 'Reset status', value: 'new' },
+}
 
-  if (employees.length === 0) {
-    return (
-      <p className="text-sm text-muted py-8 text-center">
-        No employees yet. Add one above, or import a CSV.
-      </p>
-    )
-  }
+export function EmployeeTable({ employees, onEdit, onDelete, onStatusChange }: Props) {
+  const [expandedAddr, setExpandedAddr] = useState<string | null>(null)
 
   return (
     <div className="overflow-x-auto">
@@ -67,8 +66,14 @@ export function EmployeeTable({ employees, onEdit, onDelete }: Props) {
               <td className="py-2 pr-4 text-right tabular-nums">
                 {emp.amount} {emp.currency}
               </td>
-              <td className="py-2 pr-4 text-muted text-xs">
-                {statusLabel[emp.status]}
+              <td className="py-2 pr-4 text-xs">
+                <span className={statusStyles[emp.status]}>{emp.status}</span>
+                <button
+                  onClick={() => onStatusChange(emp.id, nextStatus[emp.status].value)}
+                  className="ml-2 text-teal hover:text-teal-hover underline"
+                >
+                  {nextStatus[emp.status].label}
+                </button>
               </td>
               <td className="py-2 text-right whitespace-nowrap">
                 <button

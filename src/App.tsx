@@ -3,6 +3,7 @@ import type { BatchEntry } from './types.ts'
 import { useVault } from './hooks/useVault.ts'
 import { isPayDay, getCurrentPayDate, showPaydayNotification, requestNotificationPermission } from './notifications.ts'
 import { clearVault } from './storage.ts'
+import { GroveLogo } from './components/GroveLogo.tsx'
 import { UnlockScreen } from './components/UnlockScreen.tsx'
 import { RosterScreen } from './components/RosterScreen.tsx'
 import { BatchPreview } from './components/BatchPreview.tsx'
@@ -76,9 +77,10 @@ export default function App() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <header className="mb-8 flex items-center justify-between">
         <h1
-          className="text-xl font-bold cursor-pointer"
+          className="text-xl font-bold cursor-pointer flex items-center gap-2"
           onClick={() => setScreen('roster')}
         >
+          <GroveLogo size={28} />
           Grove
         </h1>
         <nav className="text-sm text-muted">
@@ -120,6 +122,12 @@ export default function App() {
           onBack={() => setScreen('roster')}
         />
       )}
+
+      <footer className="mt-16 pt-4 border-t border-border text-xs text-muted text-center pb-4">
+        <a href="https://github.com/davisonio/grove" target="_blank" rel="noopener noreferrer" className="hover:text-teal">
+          Source on GitHub
+        </a>
+      </footer>
     </div>
   )
 }
