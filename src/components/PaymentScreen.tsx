@@ -234,7 +234,8 @@ export function PaymentScreen({ entries, testMode, onBack }: Props) {
             <div key={entry.employee.id} className="border border-border rounded-sm p-3 mb-3 bg-white">
               <p className="text-sm font-medium">{entry.employee.name}</p>
               <p className="text-xs text-muted mt-1 break-all">{entry.employee.address}</p>
-              <p className="text-sm mt-2 tabular-nums">{entry.employee.amount} USDC</p>
+              <p className="text-sm mt-2 tabular-nums">{testMode ? '0.01' : entry.employee.amount} USDC</p>
+              {testMode && <p className="text-xs text-warn mt-1">(test amount)</p>}
             </div>
           ))}
         </div>
@@ -246,7 +247,7 @@ export function PaymentScreen({ entries, testMode, onBack }: Props) {
           <p>{zecEntries.length} ZEC recipient{zecEntries.length !== 1 ? 's' : ''}, {formatZec(totalZec)} ZEC total</p>
         )}
         {usdcEntries.length > 0 && (
-          <p>{usdcEntries.length} USDC recipient{usdcEntries.length !== 1 ? 's' : ''}, {usdcEntries.reduce((s, e) => s + e.employee.amount, 0).toFixed(2)} USDC total</p>
+          <p>{usdcEntries.length} USDC recipient{usdcEntries.length !== 1 ? 's' : ''}, {testMode ? (usdcEntries.length * 0.01).toFixed(2) : usdcEntries.reduce((s, e) => s + e.employee.amount, 0).toFixed(2)} USDC total</p>
         )}
       </div>
     </div>
