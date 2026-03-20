@@ -8,15 +8,19 @@ interface PriceState {
   error: string | null
 }
 
-export function usePrice() {
-  const [state, setState] = useState<PriceState>({
-    usdPerZec: null,
-    fetchedAt: null,
-    loading: false,
-    error: null,
-  })
+const EMPTY_STATE: PriceState = {
+  usdPerZec: null,
+  fetchedAt: null,
+  loading: false,
+  error: null,
+}
+
+export function usePrice(enabled = true) {
+  const [state, setState] = useState<PriceState>(EMPTY_STATE)
 
   const refresh = useCallback(async () => {
+    if (!enabled) return
+
     setState(s => ({ ...s, loading: true, error: null }))
     try {
       const result = await fetchZecPrice()
@@ -33,11 +37,16 @@ export function usePrice() {
         error: err instanceof Error ? err.message : 'Failed to fetch price',
       }))
     }
-  }, [])
+  }, [enabled])
 
   useEffect(() => {
-    refresh()
-  }, [refresh])
+    if (!enabled) {
+      setState(EMPTY_STATE)
+      return
+    }
+
+    void refresh()
+  }, [enabled, refresh])
 
   return { ...state, refresh }
 }

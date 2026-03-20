@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import type { Employee, BatchEntry } from '../types.ts'
 import { usePrice } from '../hooks/usePrice.ts'
 import { convertUsdToZec } from '../price.ts'
+import { validateAddress } from '../zip321.ts'
 
 interface Props {
   employees: Employee[]
@@ -18,7 +19,22 @@ const TEST_AMOUNT = 0.0001
 
 export function BatchPreview({ employees, onGenerate, onBack }: Props) {
   const [testMode, setTestMode] = useState(false)
-  const { usdPerZec, fetchedAt, loading, error, refresh } = usePrice()
+  const hasUsd = employees.some(e => e.currency === 'USD')
+  const { usdPerZec, fetchedAt, loading, error, refresh } = usePrice(hasUsd)
+
+  const invalidRecipients = useMemo(() => {
+    return employees
+      .filter(emp => emp.currency !== 'USDC')
+      .map(emp => {
+        const validation = validateAddress(emp.address)
+        if (validation.valid) return null
+        return {
+          name: emp.name,
+          message: validation.warning || 'Invalid address',
+        }
+      })
+      .filter((entry): entry is { name: string; message: string } => entry !== null)
+  }, [employees])
 
   const entries: BatchEntry[] = useMemo(() => {
     return employees.map(emp => {
@@ -49,7 +65,6 @@ export function BatchPreview({ employees, onGenerate, onBack }: Props) {
   const usdcEntries = entries.filter(e => e.employee.currency === 'USDC')
   const totalZec = zecEntries.reduce((sum, e) => sum + e.zecAmount, 0)
   const totalUsdc = usdcEntries.reduce((sum, e) => sum + e.employee.amount, 0)
-  const hasUsd = employees.some(e => e.currency === 'USD')
   const priceReady = !hasUsd || usdPerZec !== null
 
   const priceAge = fetchedAt
@@ -73,6 +88,19 @@ export function BatchPreview({ employees, onGenerate, onBack }: Props) {
           <p className="text-sm text-warn">
             {employees.filter(e => e.status === 'new').length} recipient{employees.filter(e => e.status === 'new').length !== 1 ? 's have' : ' has'} not been tested yet. Run a test batch first to verify addresses.
           </p>
+        </div>
+      )}
+
+      {invalidRecipients.length > 0 && (
+        <div className="bg-error-bg border border-error/20 p-3 rounded-sm mb-4">
+          <p className="text-sm text-error mb-1">
+            Fix {invalidRecipients.length} invalid recipient{invalidRecipients.length !== 1 ? 's' : ''} before generating payments.
+          </p>
+          {invalidRecipients.map((issue) => (
+            <p key={`${issue.name}-${issue.message}`} className="text-xs text-error">
+              {issue.name}: {issue.message}
+            </p>
+          ))}
         </div>
       )}
 
@@ -184,7 +212,7 @@ export function BatchPreview({ employees, onGenerate, onBack }: Props) {
         </div>
         <button
           onClick={() => onGenerate(entries, testMode)}
-          disabled={!priceReady || (totalZec === 0 && usdcEntries.length === 0)}
+          disabled={invalidRecipients.length > 0 || !priceReady || (totalZec === 0 && usdcEntries.length === 0)}
           className="bg-teal text-white px-4 py-2 rounded-sm text-sm font-medium hover:bg-teal-hover disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Generate payments

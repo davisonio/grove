@@ -1,12 +1,12 @@
 # Grove
 
-Shielded payroll for Zcash. Manages a roster of recipients, generates ZIP-321 payment URIs, and hands off signing to Zodl.
+Shielded payroll for Zcash. Manages a roster of mainnet shielded recipients, generates ZIP-321 payment URIs, and hands off signing to Zodl.
 
 ## How it works
 
 1. Set a passphrase. Grove encrypts your roster client-side with AES-256-GCM.
-2. Add recipients (name, shielded address, amount in USD or ZEC). Or import a CSV.
-3. Preview the batch. Grove fetches the current ZEC/USD rate and converts.
+2. Add recipients (name, mainnet shielded address, amount in USD or ZEC). Or import a CSV.
+3. Preview the batch. If you use USD-denominated recipients, Grove fetches the current ZEC/USD rate and converts.
 4. Generate the payment URI. Scan the QR with Zodl, or copy the zcash: link.
 5. Zodl handles signing and broadcast. Grove never touches private keys.
 
@@ -18,7 +18,9 @@ Toggle test mode to send 0.0001 ZEC to each address first. Verify everything wor
 
 - Store private keys or seed phrases
 - Send transactions (that's Zodl's job)
-- Phone home. There is no server. Your data stays in your browser.
+- Accept transparent or testnet payout addresses
+- Run a Grove backend. Your roster stays in your browser.
+- Send roster data to third parties. USD payouts only fetch a public ZEC/USD price quote.
 
 ## Run locally
 

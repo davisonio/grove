@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { buildZip321Uri, toBase64url, formatZecAmount } from './zip321.ts'
+import { buildZip321Uri, toBase64url, formatZecAmount, validateAddress } from './zip321.ts'
+
+const VALID_SAPLING_ADDRESS = 'zs1z7rejlpsa98s2rrrfkwmaxu53e4ue0ulcrw0h4x5g8jl04tak0d3mm80pev0md2lnv6e0qm6gvk8'
 
 describe('toBase64url', () => {
   it('encodes ASCII text', () => {
@@ -131,5 +133,40 @@ describe('buildZip321Uri', () => {
       '&amount.1=0.789' +
       '&memo.1=VGhpcyBpcyBhIHVuaWNvZGUgbWVtbyDinKjwn6aE8J-PhvCfjok'
     )
+  })
+})
+
+describe('validateAddress', () => {
+  it('accepts a valid mainnet shielded address', () => {
+    expect(validateAddress(VALID_SAPLING_ADDRESS)).toEqual({ valid: true })
+  })
+
+  it('rejects transparent addresses', () => {
+    expect(validateAddress('t1abcdefghijklmnopqrstuv')).toEqual({
+      valid: false,
+      warning: 'Transparent addresses are not allowed. Use a mainnet shielded address.',
+    })
+  })
+
+  it('rejects testnet addresses', () => {
+    expect(validateAddress('ztestsapling12345678901234567890')).toEqual({
+      valid: false,
+      warning: 'Testnet addresses are not allowed. Use a mainnet shielded address.',
+    })
+  })
+
+  it('rejects malformed shielded addresses', () => {
+    expect(validateAddress('u1badbadbadbadbadbadbadbad')).toEqual({
+      valid: false,
+      warning: 'Invalid shielded address. Check for typos and try again.',
+    })
+  })
+
+  it('rejects shielded addresses with invalid bech32 characters', () => {
+    const typoed = VALID_SAPLING_ADDRESS.slice(0, -1) + 'b'
+    expect(validateAddress(typoed)).toEqual({
+      valid: false,
+      warning: 'Invalid shielded address. Check for typos and try again.',
+    })
   })
 })

@@ -14,12 +14,10 @@ export function EmployeeForm({ onSave, onCancel, initial }: Props) {
   const [amount, setAmount] = useState(initial?.amount?.toString() ?? '')
   const [currency, setCurrency] = useState<'USD' | 'ZEC' | 'USDC'>(initial?.currency ?? 'ZEC')
   const [error, setError] = useState('')
-  const [warning, setWarning] = useState('')
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     setError('')
-    setWarning('')
 
     if (!name.trim()) {
       setError('Name is required')
@@ -39,9 +37,6 @@ export function EmployeeForm({ onSave, onCancel, initial }: Props) {
       if (!validation.valid) {
         setError(validation.warning || 'Invalid address')
         return
-      }
-      if (validation.warning) {
-        setWarning(validation.warning)
       }
     }
 
@@ -114,8 +109,13 @@ export function EmployeeForm({ onSave, onCancel, initial }: Props) {
         </p>
       )}
 
+      {currency !== 'USDC' && (
+        <p className="text-xs text-muted mt-2">
+          Mainnet shielded Zcash addresses only. Transparent and testnet addresses are rejected.
+        </p>
+      )}
+
       {error && <p className="text-error text-xs mt-2">{error}</p>}
-      {warning && <p className="text-warn text-xs mt-2">{warning}</p>}
 
       <div className="flex gap-2 mt-4">
         <button

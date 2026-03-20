@@ -1,5 +1,8 @@
 import type { Payment } from './types.ts'
 
+const BECH32_CHARSET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l'
+const MIN_SHIELDED_ADDRESS_LENGTH = 78
+
 /**
  * Encode a UTF-8 string to base64url (RFC 4648 Section 5) with no padding.
  */
@@ -65,43 +68,81 @@ export function buildZip321Uri(payments: Payment[]): string {
 }
 
 /**
- * Check if an address is a shielded Zcash address.
+ * Check if an address is a mainnet shielded Zcash address.
  */
 export function isShieldedAddress(address: string): boolean {
-  return address.startsWith('zs1') || address.startsWith('u1')
+  const trimmed = address.trim()
+  if (!trimmed.startsWith('zs1') && !trimmed.startsWith('u1')) return false
+  return trimmed.length >= MIN_SHIELDED_ADDRESS_LENGTH && hasBech32Syntax(trimmed)
 }
 
 /**
  * Check if an address is a transparent Zcash address.
  */
 export function isTransparentAddress(address: string): boolean {
-  return address.startsWith('t1') || address.startsWith('t3')
+  const trimmed = address.trim()
+  return trimmed.startsWith('t1') || trimmed.startsWith('t3')
 }
 
 /**
  * Check if an address looks like a testnet address.
  */
 export function isTestnetAddress(address: string): boolean {
-  return address.startsWith('ztestsapling') || address.startsWith('utest')
+  const trimmed = address.trim()
+  return trimmed.startsWith('ztestsapling') || trimmed.startsWith('utest')
+}
+
+function hasBech32Syntax(address: string): boolean {
+  if (!address) return false
+  if (address !== address.toLowerCase() && address !== address.toUpperCase()) {
+    return false
+  }
+
+  const normalized = address.toLowerCase()
+  const separator = normalized.lastIndexOf('1')
+  if (separator <= 0 || separator === normalized.length - 1) {
+    return false
+  }
+
+  const dataChars = normalized.slice(separator + 1)
+  if (dataChars.length < 6) {
+    return false
+  }
+
+  for (const char of dataChars) {
+    if (BECH32_CHARSET.indexOf(char) === -1) {
+      return false
+    }
+  }
+
+  return true
 }
 
 /**
- * Basic address validation: must start with a known prefix and be reasonably long.
+ * Validate a mainnet shielded Zcash address.
  */
 export function validateAddress(address: string): { valid: boolean; warning?: string } {
   const trimmed = address.trim()
 
-  if (trimmed.length < 20) {
-    return { valid: false, warning: 'Address is too short' }
+  if (!trimmed) {
+    return { valid: false, warning: 'Address is required' }
   }
 
   if (isTransparentAddress(trimmed)) {
-    return { valid: true, warning: 'Transparent address. Transactions will be visible on-chain.' }
+    return { valid: false, warning: 'Transparent addresses are not allowed. Use a mainnet shielded address.' }
   }
 
-  if (isShieldedAddress(trimmed) || isTestnetAddress(trimmed)) {
-    return { valid: true }
+  if (isTestnetAddress(trimmed)) {
+    return { valid: false, warning: 'Testnet addresses are not allowed. Use a mainnet shielded address.' }
   }
 
-  return { valid: false, warning: 'Unrecognized address format. Expected zs1, u1, t1, or t3 prefix.' }
+  if (!trimmed.startsWith('zs1') && !trimmed.startsWith('u1')) {
+    return { valid: false, warning: 'Expected a mainnet shielded address starting with zs1 or u1.' }
+  }
+
+  if (trimmed.length < MIN_SHIELDED_ADDRESS_LENGTH || !hasBech32Syntax(trimmed)) {
+    return { valid: false, warning: 'Invalid shielded address. Check for typos and try again.' }
+  }
+
+  return { valid: true }
 }

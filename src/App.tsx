@@ -19,20 +19,25 @@ export default function App() {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | null>(
     'Notification' in window ? Notification.permission : null
   )
-  const notifChecked = useRef(false)
+  const notifiedPayDate = useRef<string | null>(null)
 
   // Check for payday notification after vault unlock
   useEffect(() => {
-    if (vault.locked || notifChecked.current) return
-    notifChecked.current = true
+    if (vault.locked) {
+      notifiedPayDate.current = null
+      return
+    }
 
     const schedule = vault.roster.schedule
     if (!schedule || !schedule.enabled) return
     if (!isPayDay(schedule)) return
 
-    const payDate = getCurrentPayDate(schedule)
-    const empCount = vault.roster.employees.length
+    if (notifPermission !== 'granted') return
 
+    const payDate = getCurrentPayDate(schedule)
+    if (notifiedPayDate.current === payDate) return
+
+    const empCount = vault.roster.employees.length
     if (empCount === 0) return
 
     const total = vault.roster.employees.reduce((sum, e) => {
@@ -40,9 +45,12 @@ export default function App() {
       return sum
     }, 0)
 
-    showPaydayNotification(empCount, total > 0 ? total : undefined)
+    const shown = showPaydayNotification(empCount, total > 0 ? total : undefined)
+    if (!shown) return
+
+    notifiedPayDate.current = payDate
     vault.markNotified(payDate)
-  }, [vault.locked, vault.roster.schedule, vault.roster.employees, vault.markNotified])
+  }, [vault.locked, vault.roster.schedule, vault.roster.employees, vault.markNotified, notifPermission])
 
   const handleRequestPermission = async () => {
     const granted = await requestNotificationPermission()

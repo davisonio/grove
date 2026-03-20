@@ -56,7 +56,7 @@ export function UnlockScreen({ hasExistingVault, error, loading, onCreateVault, 
         <GroveLogo size={64} className="mb-5" />
         <h1 className="text-2xl font-bold mb-2">Grove</h1>
         <p className="text-sm text-muted mb-2">Shielded payroll for Zcash.</p>
-        <p className="text-xs text-muted mb-10">Everything encrypted in your browser with Web Crypto API. Nothing leaves this device.</p>
+        <p className="text-xs text-muted mb-10">Everything stays encrypted in your browser. USD payouts fetch a public ZEC/USD quote when needed.</p>
 
         <label className="block text-sm text-muted mb-1" htmlFor="passphrase">
           Passphrase
