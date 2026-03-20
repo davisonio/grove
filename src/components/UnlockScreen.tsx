@@ -138,6 +138,11 @@ export function UnlockScreen({ hasExistingVault, error, loading, onCreateVault, 
           </div>
         )}
       </form>
+      <div className="fixed bottom-4 text-center w-full">
+        <a href="https://github.com/davisonio/grove" target="_blank" rel="noopener noreferrer" className="text-xs text-muted hover:text-teal">
+          Source on GitHub
+        </a>
+      </div>
     </div>
   )
 }

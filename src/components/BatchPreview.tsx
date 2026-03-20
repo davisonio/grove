@@ -162,7 +162,8 @@ export function BatchPreview({ employees, onGenerate, onBack }: Props) {
                     {truncateAddress(entry.employee.address)}
                   </td>
                   <td className="py-2 pr-4 text-right tabular-nums">
-                    {entry.employee.amount} USDC
+                    {testMode ? '0.01' : entry.employee.amount} USDC
+                    {testMode && <span className="text-warn text-xs ml-1">(test)</span>}
                   </td>
                 </tr>
               ))}
@@ -178,7 +179,7 @@ export function BatchPreview({ employees, onGenerate, onBack }: Props) {
           )}
           {testMode && totalZec > 0 && <span className="text-muted ml-2">(test amounts)</span>}
           {totalUsdc > 0 && (
-            <span className={totalZec > 0 ? 'ml-4' : ''}>{totalUsdc.toFixed(2)} USDC</span>
+            <span className={totalZec > 0 ? 'ml-4' : ''}>{testMode ? (usdcEntries.length * 0.01).toFixed(2) : totalUsdc.toFixed(2)} USDC</span>
           )}
         </div>
         <button
