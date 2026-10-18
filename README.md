@@ -25,20 +25,20 @@ Toggle test mode to send 0.0001 ZEC to each address first. Verify everything wor
 ## Run locally
 
 ```
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 ## Run tests
 
 ```
-npm test
+pnpm test
 ```
 
 ## Deploy
 
 ```
-npm run build
+pnpm build
 ```
 
 Produces a `dist/` folder. Deploy anywhere that serves static files.
