@@ -5,7 +5,7 @@ export default defineConfig({
     name: "grove",
     compatibilityDate: "2026-10-01",
     // LAB-DOMAIN: domains: ["grove.<lab domain>"] once it's picked
-    workersDev: false,
+    workersDev: true,
     previewUrls: false,
     observability: { enabled: true, issues: { enabled: true } },
   },
