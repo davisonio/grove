@@ -38,10 +38,10 @@ pnpm test
 ## Deploy
 
 ```
-pnpm build
+pnpm run deploy
 ```
 
-Produces a `dist/` folder. Deploy anywhere that serves static files.
+Builds the app and deploys it to Cloudflare Workers as static assets (`cloudflare.config.ts`). There is no Worker code. `pnpm build` alone produces the build output in `.cloudflare/output/`.
 
 ## Roadmap
 
@@ -51,7 +51,7 @@ Produces a `dist/` folder. Deploy anywhere that serves static files.
 
 ## Tech
 
-React, Vite, TypeScript, Tailwind. No backend. Encryption via Web Crypto API.
+React, Vite, TypeScript, Tailwind. No backend, served from Cloudflare Workers static assets. Encryption via Web Crypto API.
 
 ZIP-321 spec: https://zips.z.cash/zip-0321
 
